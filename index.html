@@ -54,6 +54,8 @@
         .badge-denda { background: #fee2e2; color: #991b1b; }
         .badge-lunas { background: #d1fae5; color: #065f46; }
         .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-aktif { background: #d1fae5; color: #065f46; }
+        .badge-nonaktif { background: #fee2e2; color: #991b1b; }
         .status-dot {
             display: inline-block;
             width: 10px;
@@ -74,7 +76,6 @@
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(4px);
         }
-        /* Print style */
         @media print {
             body * { visibility: hidden; }
             #printable-receipt, #printable-receipt * { visibility: visible; }
@@ -93,7 +94,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Bulk input table styling */
         .bulk-table th {
             position: sticky;
             top: 0;
@@ -112,9 +112,38 @@
             border-color: #065f46;
             ring: 2px solid #065f46;
         }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            backdrop-filter: blur(4px);
+        }
+        .loading-overlay .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e2e8f0;
+            border-top-color: #065f46;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="text-center">
+            <div class="spinner mx-auto"></div>
+            <p class="mt-4 text-gray-600 font-bold">Memuat data...</p>
+        </div>
+    </div>
 
     <!-- ============ TOAST ============ -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 toast bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl max-w-md flex items-center gap-3 border border-gray-700">
@@ -228,8 +257,8 @@
                         </p>
                     </div>
                 </div>
-                <button onclick="checkConnection()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    <i class="fa-solid fa-rotate"></i> Cek Koneksi
+                <button onclick="syncAllData()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-sync"></i> Sinkronisasi Data
                 </button>
             </div>
         </div>
@@ -262,12 +291,12 @@
 
                 <div class="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 border border-gray-200">
                     <p class="font-bold text-gray-800"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Demo Akun:</p>
-                    <p class="font-mono">Nama: <span class="font-bold text-emerald-700">Ibu Siti Aminah</span> | Pass: <span class="font-bold text-emerald-700">1234</span></p>
+                    <p class="font-mono">Nama: <span class="font-bold text-emerald-700" id="demo-penyewa-nama">Ibu Siti Aminah</span> | Pass: <span class="font-bold text-emerald-700" id="demo-penyewa-pass">1234</span></p>
                     <button onclick="fillDemoPenyewa()" class="text-emerald-700 font-bold hover:underline mt-1 text-xs">Gunakan Akun Demo</button>
                 </div>
             </div>
 
-            <!-- Dashboard Penyewa (Hanya Lihat Rekap) -->
+            <!-- Dashboard Penyewa -->
             <div id="penyewa-dashboard" class="hidden">
                 <div class="bg-gradient-custom rounded-3xl p-6 text-white mb-6">
                     <p class="text-emerald-100 text-sm">Dashboard Penyewa</p>
@@ -357,6 +386,7 @@
                     <p class="text-gray-400 text-sm">Panel Admin</p>
                     <h2 class="text-2xl font-black">Rekapitulasi Keuangan Kantin</h2>
                     <p class="text-gray-400 text-sm mt-1">Logged as: <span id="admin-nama" class="text-amber-300 font-bold">Admin</span></p>
+                    <p class="text-gray-400 text-xs mt-1">Total Penyewa: <span id="admin-total-penyewa" class="text-white font-bold">0</span></p>
                 </div>
 
                 <!-- Statistik -->
@@ -407,9 +437,12 @@
                                         <option value="QRIS">QRIS / E-Wallet</option>
                                     </select>
                                 </div>
-                                <div class="flex items-end">
+                                <div class="flex items-end gap-2">
                                     <button type="button" onclick="resetBulkForm()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg text-sm transition">
                                         <i class="fa-solid fa-rotate mr-1"></i> Reset
+                                    </button>
+                                    <button type="button" onclick="syncPenyewaData()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-sm transition">
+                                        <i class="fa-solid fa-sync mr-1"></i> Sync
                                     </button>
                                 </div>
                             </div>
@@ -426,7 +459,9 @@
                                         </tr>
                                     </thead>
                                     <tbody id="bulk-table-body">
-                                        <!-- Diisi oleh JavaScript -->
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-8 text-center text-gray-400 text-sm">Memuat data penyewa...</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -490,17 +525,9 @@
     <!-- ============ JAVASCRIPT ============ -->
     <script>
         // ============================================
-        // KONFIGURASI
+        // KONFIGURASI - GANTI DENGAN URL DEPLOY ANDA
         // ============================================
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzOKqHkNAyEZ3h27RKmasbTZNJmlVT2UiW4qDusgTor9pm8TVu7YN386crGHDeFo8o7yA/exec";
-
-        // Data penyewa (hardcode atau ambil dari backend)
-        const DATA_PENYEWA = [
-            { id: 'P001', nama: 'Ibu Siti Aminah', password: '1234' },
-            { id: 'P002', nama: 'Bapak Ahmad Subagyo', password: '1234' },
-            { id: 'P003', nama: 'Ibu Dewi Kartika', password: '1234' },
-            { id: 'P004', nama: 'Bapak Hendra Gunawan', password: '1234' }
-        ];
 
         // ============================================
         // STATE
@@ -510,7 +537,9 @@
             nama: null
         };
 
+        let dataPenyewa = []; // Data dari backend
         let isConnected = false;
+        let isLoading = false;
 
         // ============================================
         // INIT
@@ -518,12 +547,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadSession();
             checkConnection();
-            renderBulkTable();
             
             if (session.role) {
                 updateUIAfterLogin();
                 if (session.role === 'admin') {
                     loadAdminData();
+                    loadDaftarPenyewa();
                 } else if (session.role === 'penyewa') {
                     loadPenyewaData(session.nama);
                 }
@@ -551,6 +580,7 @@
                 try {
                     return JSON.parse(text);
                 } catch (e) {
+                    console.error('Parse error:', text);
                     throw new Error('Respons tidak valid');
                 }
             } catch (error) {
@@ -560,7 +590,7 @@
         }
 
         // ============================================
-        // CEK KONEKSI
+        // CEK KONEKSI & SYNC DATA
         // ============================================
         async function checkConnection() {
             const statusDot = document.getElementById('backend-status-dot');
@@ -577,43 +607,116 @@
                     statusText.textContent = 'Online ✓';
                     document.getElementById('status-dot').className = 'status-dot online';
                     document.getElementById('status-text').textContent = 'Online';
-                    loadStats();
+                    await loadStats();
+                    await loadDaftarPenyewa();
+                    return true;
                 } else {
                     throw new Error('Response tidak valid');
                 }
             } catch (error) {
                 isConnected = false;
                 statusDot.className = 'inline-block w-2 h-2 rounded-full bg-red-400 mr-2';
-                statusText.textContent = 'Offline';
+                statusText.textContent = 'Offline - ' + error.message;
                 document.getElementById('status-dot').className = 'status-dot offline';
                 document.getElementById('status-text').textContent = 'Offline';
+                showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server!', 'error');
+                return false;
+            }
+        }
+
+        async function syncAllData() {
+            showLoading(true);
+            const connected = await checkConnection();
+            if (connected) {
+                await loadDaftarPenyewa();
+                if (session.role === 'admin') {
+                    await loadAdminData();
+                    renderBulkTable();
+                }
+                showToast('Sinkronisasi', 'Data berhasil disinkronkan!');
+            }
+            showLoading(false);
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
             }
         }
 
         // ============================================
-        // LOGIN PENYEWA (dengan password)
+        // LOAD DATA PENYEWA DARI BACKEND
+        // ============================================
+        async function loadDaftarPenyewa() {
+            try {
+                const result = await callBackend('getDaftarPenyewa');
+                if (result && Array.isArray(result)) {
+                    dataPenyewa = result;
+                    // Update demo akun
+                    if (dataPenyewa.length > 0) {
+                        document.getElementById('demo-penyewa-nama').textContent = dataPenyewa[0].nama;
+                        document.getElementById('demo-penyewa-pass').textContent = dataPenyewa[0].password || '1234';
+                    }
+                    renderBulkTable();
+                    return dataPenyewa;
+                } else {
+                    dataPenyewa = [];
+                    return [];
+                }
+            } catch (error) {
+                console.error('Load daftar penyewa error:', error);
+                dataPenyewa = [];
+                return [];
+            }
+        }
+
+        // ============================================
+        // LOGIN PENYEWA (dengan password dari backend)
         // ============================================
         async function handleLoginPenyewa(e) {
             e.preventDefault();
             
+            if (!isConnected) {
+                showToast('Error', 'Tidak ada koneksi ke server!', 'error');
+                return;
+            }
+            
             const nama = document.getElementById('input-penyewa-nama').value.trim();
             const password = document.getElementById('input-penyewa-pass').value.trim();
 
-            // Cari di data penyewa
-            const found = DATA_PENYEWA.find(p => 
-                p.nama.toLowerCase() === nama.toLowerCase() && 
-                p.password === password
-            );
-
-            if (found) {
-                session = { role: 'penyewa', nama: found.nama };
-                saveSession();
-                updateUIAfterLogin();
-                await loadPenyewaData(found.nama);
-                showToast('Login Berhasil', `Selamat datang, ${found.nama}!`);
-            } else {
-                showToast('Login Gagal', 'Nama atau password salah!', 'error');
+            if (!nama || !password) {
+                showToast('Error', 'Harap isi nama dan password!', 'error');
+                return;
             }
+
+            const btn = document.getElementById('btn-login-penyewa');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
+
+            try {
+                const result = await callBackend('loginPenyewa', { 
+                    namaPenyewa: nama, 
+                    password: password 
+                });
+                
+                if (result.success) {
+                    session = { role: 'penyewa', nama: result.nama };
+                    saveSession();
+                    updateUIAfterLogin();
+                    await loadPenyewaData(result.nama);
+                    showToast('Login Berhasil', `Selamat datang, ${result.nama}!`);
+                } else {
+                    showToast('Login Gagal', result.message || 'Nama atau password salah!', 'error');
+                }
+            } catch (error) {
+                showToast('Error', 'Gagal terhubung ke server!', 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk Dashboard';
         }
 
         // ============================================
@@ -622,8 +725,22 @@
         async function handleLoginAdmin(e) {
             e.preventDefault();
             
+            if (!isConnected) {
+                showToast('Error', 'Tidak ada koneksi ke server!', 'error');
+                return;
+            }
+            
             const username = document.getElementById('input-admin-user').value.trim();
             const password = document.getElementById('input-admin-pass').value.trim();
+
+            if (!username || !password) {
+                showToast('Error', 'Harap isi username dan password!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-login-admin');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
 
             try {
                 const result = await callBackend('loginAdmin', { username, password });
@@ -633,6 +750,7 @@
                     saveSession();
                     updateUIAfterLogin();
                     await loadAdminData();
+                    await loadDaftarPenyewa();
                     showToast('Login Berhasil', `Selamat datang, ${username}!`);
                 } else {
                     showToast('Login Gagal', result.message || 'Username atau password salah!', 'error');
@@ -640,6 +758,9 @@
             } catch (error) {
                 showToast('Error', 'Gagal terhubung ke server!', 'error');
             }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-lock"></i> Masuk Panel Admin';
         }
 
         // ============================================
@@ -690,13 +811,25 @@
         }
 
         // ============================================
-        // BULK INPUT - Tampilkan semua penyewa
+        // BULK INPUT - Render dari dataPenyewa
         // ============================================
         function renderBulkTable() {
             const tbody = document.getElementById('bulk-table-body');
             tbody.innerHTML = '';
             
-            DATA_PENYEWA.forEach((p, index) => {
+            if (!dataPenyewa || dataPenyewa.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-400 text-sm">
+                            <i class="fa-solid fa-info-circle mr-1"></i> 
+                            Belum ada data penyewa. Klik tombol <b>"Sync"</b> untuk memuat data.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            dataPenyewa.forEach((p, index) => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-100 hover:bg-gray-50';
                 tr.innerHTML = `
@@ -725,6 +858,13 @@
             });
         }
 
+        async function syncPenyewaData() {
+            showLoading(true);
+            await loadDaftarPenyewa();
+            showLoading(false);
+            showToast('Sync', `Data penyewa berhasil dimuat (${dataPenyewa.length} orang)`);
+        }
+
         function resetBulkForm() {
             document.querySelectorAll('.bulk-jumlah').forEach(el => el.value = '');
             document.querySelectorAll('.bulk-status').forEach(el => el.value = 'Lunas');
@@ -739,7 +879,7 @@
             let filled = 0;
             let total = 0;
             
-            jumlahs.forEach((el, i) => {
+            jumlahs.forEach((el) => {
                 const val = Number(el.value);
                 if (val > 0) {
                     filled++;
@@ -768,6 +908,11 @@
                 return;
             }
 
+            if (!isConnected) {
+                showToast('Error', 'Tidak ada koneksi ke server!', 'error');
+                return;
+            }
+
             const tanggal = document.getElementById('bulk-tanggal').value;
             const jenis = document.getElementById('bulk-jenis').value;
             const metode = document.getElementById('bulk-metode').value;
@@ -777,20 +922,26 @@
                 return;
             }
 
-            // Kumpulkan data yang diisi
             const rows = document.querySelectorAll('#bulk-table-body tr');
             let dataToSend = [];
             let totalData = 0;
 
             rows.forEach(row => {
-                const nama = row.querySelector('.bulk-nama').value;
-                const jumlah = Number(row.querySelector('.bulk-jumlah').value);
-                const status = row.querySelector('.bulk-status').value;
-                const catatan = row.querySelector('.bulk-catatan').value || '-';
+                const namaInput = row.querySelector('.bulk-nama');
+                const jumlahInput = row.querySelector('.bulk-jumlah');
+                const statusSelect = row.querySelector('.bulk-status');
+                const catatanInput = row.querySelector('.bulk-catatan');
 
-                if (jumlah > 0) {
-                    dataToSend.push({ nama, jumlah, status, catatan });
-                    totalData += jumlah;
+                if (namaInput && jumlahInput) {
+                    const nama = namaInput.value;
+                    const jumlah = Number(jumlahInput.value);
+                    const status = statusSelect ? statusSelect.value : 'Lunas';
+                    const catatan = catatanInput ? catatanInput.value || '-' : '-';
+
+                    if (jumlah > 0 && nama) {
+                        dataToSend.push({ nama, jumlah, status, catatan });
+                        totalData += jumlah;
+                    }
                 }
             });
 
@@ -799,7 +950,6 @@
                 return;
             }
 
-            // Konfirmasi
             if (!confirm(`Anda akan menyimpan ${dataToSend.length} transaksi dengan total ${formatRupiah(totalData)}. Lanjutkan?`)) {
                 return;
             }
@@ -810,6 +960,7 @@
 
             let successCount = 0;
             let failCount = 0;
+            let errors = [];
 
             for (let data of dataToSend) {
                 try {
@@ -826,9 +977,11 @@
                         successCount++;
                     } else {
                         failCount++;
+                        errors.push(`${data.nama}: ${result.message}`);
                     }
                 } catch (error) {
                     failCount++;
+                    errors.push(`${data.nama}: ${error.message}`);
                 }
             }
 
@@ -836,12 +989,17 @@
             btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Semua Setoran';
 
             if (successCount > 0) {
-                showToast('Berhasil', `${successCount} transaksi berhasil disimpan!${failCount > 0 ? ` (${failCount} gagal)` : ''}`);
+                let msg = `${successCount} transaksi berhasil disimpan!`;
+                if (failCount > 0) {
+                    msg += ` (${failCount} gagal)`;
+                    console.error('Errors:', errors.join(', '));
+                }
+                showToast('Berhasil', msg);
                 resetBulkForm();
                 await loadAdminData();
                 await loadStats();
             } else {
-                showToast('Error', 'Gagal menyimpan semua transaksi!', 'error');
+                showToast('Error', `Gagal menyimpan semua transaksi! Error: ${errors[0] || ''}`, 'error');
             }
         }
 
@@ -890,6 +1048,7 @@
             document.getElementById('admin-total-sewa').textContent = formatRupiah(totalSewa);
             document.getElementById('admin-total-iuran').textContent = formatRupiah(totalIuran);
             document.getElementById('admin-total-kas').textContent = formatRupiah(totalSewa + totalIuran);
+            document.getElementById('admin-total-penyewa').textContent = names.length;
         }
 
         function renderPenyewaDashboard(data, nama) {
@@ -943,9 +1102,16 @@
                 navBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
             }
 
-            if (tabId === 'admin' && session.role === 'admin') loadAdminData();
-            if (tabId === 'penyewa' && session.role === 'penyewa') loadPenyewaData(session.nama);
-            if (tabId === 'beranda') loadStats();
+            if (tabId === 'admin' && session.role === 'admin') {
+                loadAdminData();
+                renderBulkTable();
+            }
+            if (tabId === 'penyewa' && session.role === 'penyewa') {
+                loadPenyewaData(session.nama);
+            }
+            if (tabId === 'beranda') {
+                loadStats();
+            }
         }
 
         function toggleMobileMenu() {
@@ -953,8 +1119,13 @@
         }
 
         function fillDemoPenyewa() {
-            document.getElementById('input-penyewa-nama').value = 'Ibu Siti Aminah';
-            document.getElementById('input-penyewa-pass').value = '1234';
+            if (dataPenyewa.length > 0) {
+                document.getElementById('input-penyewa-nama').value = dataPenyewa[0].nama;
+                document.getElementById('input-penyewa-pass').value = dataPenyewa[0].password || '1234';
+            } else {
+                document.getElementById('input-penyewa-nama').value = 'Ibu Siti Aminah';
+                document.getElementById('input-penyewa-pass').value = '1234';
+            }
         }
 
         function fillDemoAdmin() {
@@ -978,7 +1149,6 @@
                     document.getElementById('admin-login').classList.add('hidden');
                     document.getElementById('admin-dashboard').classList.remove('hidden');
                     document.getElementById('admin-nama').textContent = session.nama;
-                    renderBulkTable();
                 }
             }
         }
