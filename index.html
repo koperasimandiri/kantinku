@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KantinKu - SMP Negeri 4 Majenang</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .bg-gradient-custom {
+            background: linear-gradient(135deg, #065f46, #0d9488);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .toast {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .nav-btn.active {
+            background: #065f46;
+            color: white;
+        }
+        .nav-btn.active i {
+            color: white;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .badge-status {
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        /* Status koneksi */
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-dot.online {
+            background: #22c55e;
+        }
+        .status-dot.offline {
+            background: #ef4444;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- ============ TOAST NOTIFICATION ============ -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 toast bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl max-w-md flex items-center gap-3 border border-gray-700">
+        <div id="toast-icon" class="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-600">
+            <i class="fa-solid fa-check text-white text-sm"></i>
+        </div>
+        <div>
+            <p id="toast-title" class="text-xs font-bold uppercase tracking-wider text-gray-400">Notifikasi</p>
+            <p id="toast-message" class="text-sm font-medium text-white">Pesan sistem</p>
+        </div>
+        <button onclick="hideToast()" class="ml-4 text-gray-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+    </div>
+
+    <!-- ============ HEADER ============ -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('beranda')">
+                <div class="w-10 h-10 bg-gradient-custom rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-gray-900">KantinKu</h1>
+                    <p class="text-xs text-emerald-700 font-semibold">SMP Negeri 4 Majenang</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Status Koneksi -->
+                <div id="connection-status" class="hidden md:flex items-center text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
+                    <span id="status-dot" class="status-dot online"></span>
+                    <span id="status-text">Online</span>
+                </div>
+
+                <!-- User Badge -->
+                <div id="user-badge" class="hidden items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-xl text-sm font-bold text-emerald-800 border border-emerald-200">
+                    <i class="fa-solid fa-circle-user text-emerald-600"></i>
+                    <span id="user-badge-name">User</span>
+                    <button onclick="logout()" class="text-red-500 hover:text-red-700 ml-1">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg hover:bg-gray-100">
+                    <i class="fa-solid fa-bars text-xl text-gray-600"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="max-w-6xl mx-auto px-4 pb-2">
+            <div class="flex gap-1 overflow-x-auto">
+                <button onclick="switchTab('beranda')" id="nav-beranda" class="nav-btn active px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 bg-emerald-700 text-white">
+                    <i class="fa-solid fa-house"></i> Beranda
+                </button>
+                <button onclick="switchTab('penyewa')" id="nav-penyewa" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 text-gray-600 hover:bg-gray-100">
+                    <i class="fa-solid fa-user"></i> Penyewa
+                </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 text-gray-600 hover:bg-gray-100">
+                    <i class="fa-solid fa-shield-halved"></i> Admin
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- ===== TAB BERANDA ===== -->
+        <div id="tab-beranda" class="tab-content active">
+            <div class="bg-gradient-custom rounded-3xl p-8 text-white mb-8">
+                <h2 class="text-3xl font-black">Sistem Sewa Kantin SMPN 4 Majenang</h2>
+                <p class="text-emerald-100 mt-2">Platform digital untuk pengelolaan sewa dan iuran kantin sekolah</p>
+                <div class="flex flex-wrap gap-3 mt-4">
+                    <button onclick="switchTab('penyewa')" class="px-6 py-2 bg-white text-emerald-800 font-bold rounded-xl hover:bg-gray-100 transition">
+                        <i class="fa-solid fa-user mr-2"></i> Login Penyewa
+                    </button>
+                    <button onclick="switchTab('admin')" class="px-6 py-2 bg-emerald-800/50 text-white font-bold rounded-xl hover:bg-emerald-800/70 transition border border-white/20">
+                        <i class="fa-solid fa-shield-halved mr-2"></i> Login Admin
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistik -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase">Total Penyewa</p>
+                    <p id="stat-total-penyewa" class="text-2xl font-black text-gray-900">-</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase">Total Sewa</p>
+                    <p id="stat-total-sewa" class="text-2xl font-black text-emerald-700">-</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase">Total Iuran</p>
+                    <p id="stat-total-iuran" class="text-2xl font-black text-blue-700">-</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase">Total Kas</p>
+                    <p id="stat-total-kas" class="text-2xl font-black text-gray-900">-</p>
+                </div>
+            </div>
+
+            <!-- Status Backend -->
+            <div class="mt-8 bg-gray-900 rounded-2xl p-4 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-database text-emerald-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400">Backend Status</p>
+                        <p class="text-sm font-mono" id="backend-status">
+                            <span id="backend-status-dot" class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
+                            <span id="backend-status-text">Memeriksa koneksi...</span>
+                        </p>
+                    </div>
+                </div>
+                <button onclick="checkConnection()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> Cek Koneksi
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== TAB PENYEWA ===== -->
+        <div id="tab-penyewa" class="tab-content">
+            <!-- Login Form -->
+            <div id="penyewa-login" class="max-w-md mx-auto bg-white rounded-3xl p-8 shadow-lg border border-gray-200">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center text-2xl mx-auto text-emerald-700">
+                        <i class="fa-solid fa-user-lock"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 mt-3">Login Penyewa</h3>
+                    <p class="text-sm text-gray-500">Masukkan nama lengkap Anda</p>
+                </div>
+
+                <form onsubmit="handleLoginPenyewa(event)">
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Nama Lengkap *</label>
+                        <input type="text" id="input-penyewa-nama" required placeholder="Ibu Siti Aminah" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <button type="submit" id="btn-login-penyewa" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk Dashboard
+                    </button>
+                </form>
+
+                <div class="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 border border-gray-200">
+                    <p class="font-bold text-gray-800"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Demo Akun:</p>
+                    <p class="font-mono">Nama: <span class="font-bold text-emerald-700">Ibu Siti Aminah</span></p>
+                    <button onclick="fillDemoPenyewa()" class="text-emerald-700 font-bold hover:underline mt-1">Gunakan Akun Demo</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Penyewa -->
+            <div id="penyewa-dashboard" class="hidden">
+                <div class="bg-gradient-custom rounded-3xl p-6 text-white mb-6">
+                    <p class="text-emerald-100 text-sm">Dashboard Penyewa</p>
+                    <h2 class="text-2xl font-black">Selamat Datang, <span id="penyewa-nama" class="text-amber-300">-</span>!</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase">Total Sewa</p>
+                        <p id="penyewa-total-sewa" class="text-xl font-black text-emerald-700">Rp 0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase">Total Iuran</p>
+                        <p id="penyewa-total-iuran" class="text-xl font-black text-blue-700">Rp 0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-900">Riwayat Transaksi</h3>
+                        <button onclick="refreshPenyewa()" class="text-sm text-emerald-700 font-bold hover:underline">
+                            <i class="fa-solid fa-rotate mr-1"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">Jenis</th>
+                                    <th class="px-6 py-3 text-left">Jumlah</th>
+                                    <th class="px-6 py-3 text-left">Tanggal</th>
+                                    <th class="px-6 py-3 text-left">Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="penyewa-transaksi-body" class="divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">Belum ada transaksi</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button onclick="logout()" class="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== TAB ADMIN ===== -->
+        <div id="tab-admin" class="tab-content">
+            <!-- Login Form -->
+            <div id="admin-login" class="max-w-md mx-auto bg-white rounded-3xl p-8 shadow-lg border border-gray-200">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl mx-auto text-blue-700">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 mt-3">Login Admin</h3>
+                    <p class="text-sm text-gray-500">Masukkan username dan password</p>
+                </div>
+
+                <form onsubmit="handleLoginAdmin(event)">
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Username *</label>
+                        <input type="text" id="input-admin-user" required placeholder="admin" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Password *</label>
+                        <input type="password" id="input-admin-pass" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <button type="submit" id="btn-login-admin" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i> Masuk Panel Admin
+                    </button>
+                </form>
+
+                <div class="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 border border-gray-200">
+                    <p class="font-bold text-gray-800"><i class="fa-solid fa-key text-blue-600 mr-1"></i> Demo Akun:</p>
+                    <p class="font-mono">User: <span class="font-bold text-blue-700">admin</span> | Pass: <span class="font-bold text-blue-700">smpn4majenang</span></p>
+                    <button onclick="fillDemoAdmin()" class="text-blue-700 font-bold hover:underline mt-1">Gunakan Akun Demo</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Admin -->
+            <div id="admin-dashboard" class="hidden">
+                <div class="bg-gray-900 rounded-3xl p-6 text-white mb-6">
+                    <p class="text-gray-400 text-sm">Panel Admin</p>
+                    <h2 class="text-2xl font-black">Rekapitulasi Keuangan Kantin</h2>
+                    <p class="text-gray-400 text-sm mt-1">Logged as: <span id="admin-nama" class="text-amber-300 font-bold">Admin</span></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase">Total Sewa</p>
+                        <p id="admin-total-sewa" class="text-2xl font-black text-emerald-700">Rp 0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase">Total Iuran</p>
+                        <p id="admin-total-iuran" class="text-2xl font-black text-blue-700">Rp 0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                        <p class="text-xs font-bold text-gray-400 uppercase">Total Kas</p>
+                        <p id="admin-total-kas" class="text-2xl font-black text-gray-900">Rp 0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-900">Rekap Setoran per Penyewa</h3>
+                        <button onclick="refreshAdmin()" class="text-sm text-blue-700 font-bold hover:underline">
+                            <i class="fa-solid fa-rotate mr-1"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">Nama Penyewa</th>
+                                    <th class="px-6 py-3 text-left">Total Sewa</th>
+                                    <th class="px-6 py-3 text-left">Total Iuran</th>
+                                    <th class="px-6 py-3 text-left">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-rekap-body" class="divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">Belum ada data</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button onclick="logout()" class="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2026 SMP Negeri 4 Majenang. All rights reserved.</p>
+            <p class="font-semibold text-emerald-800 text-xs mt-1">Sistem KantinKu - Berbasis Google Apps Script</p>
+        </div>
+    </footer>
+
+    <!-- ============ JAVASCRIPT ============ -->
+    <script>
+        // ============================================
+        // KONFIGURASI - GANTI DENGAN URL DEPLOY ANDA
+        // ============================================
+        // 1. Deploy Apps Script sebagai Web App dengan akses "Anyone"
+        // 2. Copy URL yang dihasilkan
+        // 3. Paste di bawah ini:
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzOKqHkNAyEZ3h27RKmasbTZNJmlVT2UiW4qDusgTor9pm8TVu7YN386crGHDeFo8o7yA/exec";
+
+        // ============================================
+        // STATE
+        // ============================================
+        let session = {
+            role: null, // 'admin' atau 'penyewa'
+            nama: null
+        };
+
+        let dataCache = {
+            semuaRekap: null,
+            rekapPenyewa: null
+        };
+
+        let isConnected = false;
+
+        // ============================================
+        // INIT
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSession();
+            checkConnection();
+            
+            if (session.role) {
+                updateUIAfterLogin();
+                if (session.role === 'admin') {
+                    loadAdminData();
+                } else if (session.role === 'penyewa') {
+                    loadPenyewaData(session.nama);
+                }
+            }
+        });
+
+        // ============================================
+        // CEK KONEKSI BACKEND
+        // ============================================
+        async function checkConnection() {
+            const statusDot = document.getElementById('backend-status-dot');
+            const statusText = document.getElementById('backend-status-text');
+            const connStatus = document.getElementById('connection-status');
+            
+            statusDot.className = 'inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2';
+            statusText.textContent = 'Mengecek koneksi...';
+            
+            try {
+                // Coba panggil API sederhana
+                const result = await callBackend('getRekapSemua');
+                
+                if (result && typeof result === 'object') {
+                    isConnected = true;
+                    statusDot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2';
+                    statusText.textContent = 'Online ✓';
+                    
+                    if (connStatus) {
+                        document.getElementById('status-dot').className = 'status-dot online';
+                        document.getElementById('status-text').textContent = 'Online';
+                        connStatus.classList.remove('hidden');
+                    }
+                    
+                    // Load stats setelah koneksi berhasil
+                    loadStats();
+                    showToast('Koneksi', 'Terhubung ke server Google Sheets!');
+                } else {
+                    throw new Error('Response tidak valid');
+                }
+            } catch (error) {
+                isConnected = false;
+                statusDot.className = 'inline-block w-2 h-2 rounded-full bg-red-400 mr-2';
+                statusText.textContent = 'Offline - ' + error.message;
+                
+                if (connStatus) {
+                    document.getElementById('status-dot').className = 'status-dot offline';
+                    document.getElementById('status-text').textContent = 'Offline';
+                }
+                
+                showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server. Periksa URL dan deploy ulang.', 'error');
+                console.error('Connection error:', error);
+            }
+        }
+
+        // ============================================
+        // BACKEND CALL
+        // ============================================
+        async function callBackend(action, params = {}) {
+            try {
+                const formData = new URLSearchParams({ action, ...params });
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
+                    body: formData.toString(),
+                    mode: 'cors'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch (parseError) {
+                    console.error('Parse error:', text);
+                    throw new Error('Respons tidak valid dari server');
+                }
+            } catch (error) {
+                console.error('Backend error:', error);
+                // Tampilkan error spesifik
+                let errorMsg = 'Gagal terhubung ke server!';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = 'Tidak dapat terhubung ke server. Periksa URL deploy dan akses "Anyone".';
+                } else if (error.message.includes('HTTP')) {
+                    errorMsg = `Server error: ${error.message}`;
+                }
+                showToast('Error', errorMsg, 'error');
+                return { success: false, message: error.message };
+            }
+        }
+
+        // ============================================
+        // LOGIN FUNCTIONS
+        // ============================================
+        async function handleLoginPenyewa(e) {
+            e.preventDefault();
+            
+            if (!isConnected) {
+                showToast('Error', 'Tidak ada koneksi ke server! Cek koneksi terlebih dahulu.', 'error');
+                return;
+            }
+            
+            const nama = document.getElementById('input-penyewa-nama').value.trim();
+            
+            if (!nama) {
+                showToast('Error', 'Silakan masukkan nama lengkap!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-login-penyewa');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
+
+            try {
+                const result = await callBackend('loginPenyewa', { namaPenyewa: nama });
+                
+                if (result.success) {
+                    session = { role: 'penyewa', nama: result.nama };
+                    saveSession();
+                    updateUIAfterLogin();
+                    await loadPenyewaData(result.nama);
+                    showToast('Login Berhasil', `Selamat datang, ${result.nama}!`);
+                } else {
+                    showToast('Login Gagal', result.message || 'Nama tidak ditemukan atau tidak aktif', 'error');
+                }
+            } catch (error) {
+                showToast('Error', 'Gagal terhubung ke server!', 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk Dashboard';
+        }
+
+        async function handleLoginAdmin(e) {
+            e.preventDefault();
+            
+            if (!isConnected) {
+                showToast('Error', 'Tidak ada koneksi ke server! Cek koneksi terlebih dahulu.', 'error');
+                return;
+            }
+            
+            const username = document.getElementById('input-admin-user').value.trim();
+            const password = document.getElementById('input-admin-pass').value.trim();
+
+            if (!username || !password) {
+                showToast('Error', 'Harap isi username dan password!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-login-admin');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
+
+            try {
+                const result = await callBackend('loginAdmin', { username, password });
+                
+                if (result.success) {
+                    session = { role: 'admin', nama: username };
+                    saveSession();
+                    updateUIAfterLogin();
+                    await loadAdminData();
+                    showToast('Login Berhasil', `Selamat datang, ${username}!`);
+                } else {
+                    showToast('Login Gagal', result.message || 'Username atau password salah!', 'error');
+                }
+            } catch (error) {
+                showToast('Error', 'Gagal terhubung ke server!', 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-lock"></i> Masuk Panel Admin';
+        }
+
+        // ============================================
+        // DATA LOADING
+        // ============================================
+        async function loadAdminData() {
+            if (!isConnected) {
+                showToast('Info', 'Tidak ada koneksi ke server.', 'info');
+                return;
+            }
+            
+            try {
+                const result = await callBackend('getRekapSemua');
+                
+                if (result && typeof result === 'object') {
+                    dataCache.semuaRekap = result;
+                    renderAdminRekap(result);
+                } else {
+                    showToast('Info', 'Belum ada data transaksi', 'info');
+                }
+            } catch (error) {
+                console.error('Load admin data error:', error);
+                showToast('Error', 'Gagal memuat data admin!', 'error');
+            }
+        }
+
+        async function loadPenyewaData(nama) {
+            if (!isConnected) {
+                showToast('Info', 'Tidak ada koneksi ke server.', 'info');
+                return;
+            }
+            
+            try {
+                const result = await callBackend('getRekapPenyewa', { namaPenyewa: nama });
+                
+                if (result && result.transaksi) {
+                    dataCache.rekapPenyewa = result;
+                    renderPenyewaDashboard(result, nama);
+                } else {
+                    showToast('Info', 'Belum ada transaksi untuk penyewa ini', 'info');
+                }
+            } catch (error) {
+                console.error('Load penyewa data error:', error);
+                showToast('Error', 'Gagal memuat data penyewa!', 'error');
+            }
+        }
+
+        async function loadStats() {
+            if (!isConnected) {
+                document.getElementById('stat-total-penyewa').textContent = '?';
+                document.getElementById('stat-total-sewa').textContent = '?';
+                document.getElementById('stat-total-iuran').textContent = '?';
+                document.getElementById('stat-total-kas').textContent = '?';
+                return;
+            }
+            
+            try {
+                const result = await callBackend('getRekapSemua');
+                
+                if (result && typeof result === 'object') {
+                    let totalSewa = 0;
+                    let totalIuran = 0;
+                    let totalPenyewa = Object.keys(result).length;
+                    
+                    for (let nama in result) {
+                        totalSewa += result[nama].totalSewa || 0;
+                        totalIuran += result[nama].totalIuran || 0;
+                    }
+                    
+                    document.getElementById('stat-total-penyewa').textContent = totalPenyewa;
+                    document.getElementById('stat-total-sewa').textContent = formatRupiah(totalSewa);
+                    document.getElementById('stat-total-iuran').textContent = formatRupiah(totalIuran);
+                    document.getElementById('stat-total-kas').textContent = formatRupiah(totalSewa + totalIuran);
+                }
+            } catch (error) {
+                console.error('Load stats error:', error);
+                document.getElementById('stat-total-penyewa').textContent = 'Error';
+            }
+        }
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+        function renderAdminRekap(rekap) {
+            const tbody = document.getElementById('admin-rekap-body');
+            tbody.innerHTML = '';
+
+            let totalSewa = 0;
+            let totalIuran = 0;
+
+            const names = Object.keys(rekap);
+            if (names.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">Belum ada data</td></tr>`;
+                return;
+            }
+
+            names.forEach(nama => {
+                const data = rekap[nama];
+                const total = (data.totalSewa || 0) + (data.totalIuran || 0);
+                totalSewa += data.totalSewa || 0;
+                totalIuran += data.totalIuran || 0;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition';
+                tr.innerHTML = `
+                    <td class="px-6 py-3 font-bold text-gray-900">${nama}</td>
+                    <td class="px-6 py-3 text-emerald-700 font-bold">${formatRupiah(data.totalSewa || 0)}</td>
+                    <td class="px-6 py-3 text-blue-700 font-bold">${formatRupiah(data.totalIuran || 0)}</td>
+                    <td class="px-6 py-3 font-bold text-gray-900">${formatRupiah(total)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Total row
+            const trTotal = document.createElement('tr');
+            trTotal.className = 'bg-gray-50 font-bold border-t-2 border-gray-300';
+            trTotal.innerHTML = `
+                <td class="px-6 py-3 text-gray-900">TOTAL KESELURUHAN</td>
+                <td class="px-6 py-3 text-emerald-700">${formatRupiah(totalSewa)}</td>
+                <td class="px-6 py-3 text-blue-700">${formatRupiah(totalIuran)}</td>
+                <td class="px-6 py-3 text-gray-900">${formatRupiah(totalSewa + totalIuran)}</td>
+            `;
+            tbody.appendChild(trTotal);
+
+            // Update admin stats
+            document.getElementById('admin-total-sewa').textContent = formatRupiah(totalSewa);
+            document.getElementById('admin-total-iuran').textContent = formatRupiah(totalIuran);
+            document.getElementById('admin-total-kas').textContent = formatRupiah(totalSewa + totalIuran);
+        }
+
+        function renderPenyewaDashboard(data, nama) {
+            document.getElementById('penyewa-nama').textContent = nama;
+            document.getElementById('penyewa-total-sewa').textContent = formatRupiah(data.totalSewa || 0);
+            document.getElementById('penyewa-total-iuran').textContent = formatRupiah(data.totalIuran || 0);
+
+            const tbody = document.getElementById('penyewa-transaksi-body');
+            tbody.innerHTML = '';
+
+            if (!data.transaksi || data.transaksi.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400 text-sm">Belum ada transaksi</td></tr>`;
+                return;
+            }
+
+            data.transaksi.forEach(tx => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition';
+                const isSewa = tx.jenis === 'Sewa';
+                tr.innerHTML = `
+                    <td class="px-6 py-3">
+                        <span class="badge-status ${isSewa ? 'badge-active' : 'badge-inactive'}">
+                            ${tx.jenis || '-'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-3 font-bold ${isSewa ? 'text-emerald-700' : 'text-blue-700'}">
+                        ${formatRupiah(tx.jumlah || 0)}
+                    </td>
+                    <td class="px-6 py-3 text-gray-600 text-sm">${tx.tanggal || '-'}</td>
+                    <td class="px-6 py-3 text-gray-500 text-sm">${tx.catatan || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            
+            const tab = document.getElementById(`tab-${tabId}`);
+            if (tab) tab.classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            
+            const navBtn = document.getElementById(`nav-${tabId}`);
+            if (navBtn) {
+                navBtn.classList.add('active');
+                navBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            }
+
+            // Refresh data when switching tabs
+            if (tabId === 'admin' && session.role === 'admin') {
+                loadAdminData();
+            }
+            if (tabId === 'penyewa' && session.role === 'penyewa') {
+                loadPenyewaData(session.nama);
+            }
+            if (tabId === 'beranda') {
+                loadStats();
+            }
+        }
+
+        function toggleMobileMenu() {
+            document.querySelector('nav').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function fillDemoPenyewa() {
+            document.getElementById('input-penyewa-nama').value = 'Ibu Siti Aminah';
+        }
+
+        function fillDemoAdmin() {
+            document.getElementById('input-admin-user').value = 'admin';
+            document.getElementById('input-admin-pass').value = 'smpn4majenang';
+        }
+
+        function updateUIAfterLogin() {
+            const badge = document.getElementById('user-badge');
+            const badgeName = document.getElementById('user-badge-name');
+
+            if (session.role) {
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+                badgeName.textContent = session.role === 'admin' ? 'Admin' : session.nama;
+
+                if (session.role === 'penyewa') {
+                    document.getElementById('penyewa-login').classList.add('hidden');
+                    document.getElementById('penyewa-dashboard').classList.remove('hidden');
+                } else if (session.role === 'admin') {
+                    document.getElementById('admin-login').classList.add('hidden');
+                    document.getElementById('admin-dashboard').classList.remove('hidden');
+                    document.getElementById('admin-nama').textContent = session.nama;
+                }
+            }
+        }
+
+        function logout() {
+            session = { role: null, nama: null };
+            localStorage.removeItem('kantinku_session');
+            
+            document.getElementById('user-badge').classList.add('hidden');
+            document.getElementById('user-badge').classList.remove('flex');
+            
+            document.getElementById('penyewa-login').classList.remove('hidden');
+            document.getElementById('penyewa-dashboard').classList.add('hidden');
+            document.getElementById('admin-login').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            
+            document.getElementById('input-penyewa-nama').value = '';
+            document.getElementById('input-admin-user').value = '';
+            document.getElementById('input-admin-pass').value = '';
+            
+            switchTab('beranda');
+            showToast('Logout', 'Anda telah keluar dari sistem.');
+        }
+
+        function saveSession() {
+            localStorage.setItem('kantinku_session', JSON.stringify(session));
+        }
+
+        function loadSession() {
+            const saved = localStorage.getItem('kantinku_session');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.role && parsed.nama) {
+                        session = parsed;
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function refreshPenyewa() {
+            if (session.role === 'penyewa' && session.nama) {
+                loadPenyewaData(session.nama);
+                showToast('Refresh', 'Data transaksi diperbarui!');
+            }
+        }
+
+        function refreshAdmin() {
+            if (session.role === 'admin') {
+                loadAdminData();
+                showToast('Refresh', 'Data rekap diperbarui!');
+            }
+        }
+
+        // ============================================
+        // TOAST NOTIFICATION
+        // ============================================
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastTitle.textContent = title;
+            toastMsg.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-emerald-600';
+                toastIcon.innerHTML = '<i class="fa-solid fa-check text-white text-sm"></i>';
+            } else if (type === 'error') {
+                toastIcon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-red-600';
+                toastIcon.innerHTML = '<i class="fa-solid fa-xmark text-white text-sm"></i>';
+            } else {
+                toastIcon.className = 'w-8 h-8 rounded-full flex items-center justify-center bg-blue-600';
+                toastIcon.innerHTML = '<i class="fa-solid fa-info text-white text-sm"></i>';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideToast() {
+            document.getElementById('toast').classList.remove('show');
+        }
+
+        // ============================================
+        // UTILITY
+        // ============================================
+        function formatRupiah(angka) {
+            const val = Number(angka) || 0;
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(val);
+        }
+    </script>
+</body>
+</html>
