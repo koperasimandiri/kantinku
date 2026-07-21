@@ -56,6 +56,7 @@
         .badge-pending { background: #fef3c7; color: #92400e; }
         .badge-aktif { background: #d1fae5; color: #065f46; }
         .badge-nonaktif { background: #fee2e2; color: #991b1b; }
+        .badge-pending-status { background: #fef3c7; color: #92400e; }
         .status-dot {
             display: inline-block;
             width: 10px;
@@ -288,12 +289,6 @@
                         <i class="fa-solid fa-right-to-bracket"></i> Masuk Dashboard
                     </button>
                 </form>
-
-                <div class="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 border border-gray-200">
-                    <p class="font-bold text-gray-800"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Demo Akun:</p>
-                    <p class="font-mono">Nama: <span class="font-bold text-emerald-700" id="demo-penyewa-nama">Ibu Siti Aminah</span> | Pass: <span class="font-bold text-emerald-700" id="demo-penyewa-pass">1234</span></p>
-                    <button onclick="fillDemoPenyewa()" class="text-emerald-700 font-bold hover:underline mt-1 text-xs">Gunakan Akun Demo</button>
-                </div>
             </div>
 
             <!-- Dashboard Penyewa -->
@@ -372,12 +367,6 @@
                         <i class="fa-solid fa-lock"></i> Masuk Panel Admin
                     </button>
                 </form>
-
-                <div class="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 border border-gray-200">
-                    <p class="font-bold text-gray-800"><i class="fa-solid fa-key text-blue-600 mr-1"></i> Demo Akun:</p>
-                    <p class="font-mono">User: <span class="font-bold text-blue-700">admin</span> | Pass: <span class="font-bold text-blue-700">smpn4majenang</span></p>
-                    <button onclick="fillDemoAdmin()" class="text-blue-700 font-bold hover:underline mt-1 text-xs">Gunakan Akun Demo</button>
-                </div>
             </div>
 
             <!-- Dashboard Admin -->
@@ -413,6 +402,10 @@
                             Input Setoran Sekaligus untuk Semua Penyewa
                         </h3>
                         <p class="text-xs text-gray-500 mt-1">Isi data setoran untuk semua penyewa dalam satu tabel</p>
+                        <p class="text-xs text-emerald-600 mt-1">
+                            <i class="fa-solid fa-info-circle"></i> 
+                            Data penyewa diambil langsung dari sheet <b>"Penyewa"</b>
+                        </p>
                     </div>
                     
                     <div class="p-4 overflow-x-auto">
@@ -453,14 +446,18 @@
                                         <tr class="bg-gray-50 border-b border-gray-200">
                                             <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase w-[30px]">#</th>
                                             <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase">Nama Penyewa</th>
+                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase">Status</th>
                                             <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase w-[120px]">Jumlah (Rp)</th>
-                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase w-[100px]">Status</th>
+                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase w-[100px]">Status Bayar</th>
                                             <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase">Catatan</th>
                                         </tr>
                                     </thead>
                                     <tbody id="bulk-table-body">
                                         <tr>
-                                            <td colspan="5" class="px-4 py-8 text-center text-gray-400 text-sm">Memuat data penyewa...</td>
+                                            <td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">
+                                                <i class="fa-solid fa-info-circle mr-1"></i> 
+                                                Memuat data penyewa dari sheet <b>"Penyewa"</b>...
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -537,7 +534,7 @@
             nama: null
         };
 
-        let dataPenyewa = []; // Data dari backend
+        let dataPenyewa = [];
         let isConnected = false;
         let isLoading = false;
 
@@ -600,8 +597,8 @@
             statusText.textContent = 'Mengecek...';
             
             try {
-                const result = await callBackend('getRekapSemua');
-                if (result && typeof result === 'object') {
+                const result = await callBackend('ping');
+                if (result && result.success) {
                     isConnected = true;
                     statusDot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2';
                     statusText.textContent = 'Online ✓';
@@ -655,26 +652,23 @@
                 const result = await callBackend('getDaftarPenyewa');
                 if (result && Array.isArray(result)) {
                     dataPenyewa = result;
-                    // Update demo akun
-                    if (dataPenyewa.length > 0) {
-                        document.getElementById('demo-penyewa-nama').textContent = dataPenyewa[0].nama;
-                        document.getElementById('demo-penyewa-pass').textContent = dataPenyewa[0].password || '1234';
-                    }
                     renderBulkTable();
                     return dataPenyewa;
                 } else {
                     dataPenyewa = [];
+                    renderBulkTable();
                     return [];
                 }
             } catch (error) {
                 console.error('Load daftar penyewa error:', error);
                 dataPenyewa = [];
+                renderBulkTable();
                 return [];
             }
         }
 
         // ============================================
-        // LOGIN PENYEWA (dengan password dari backend)
+        // LOGIN PENYEWA
         // ============================================
         async function handleLoginPenyewa(e) {
             e.preventDefault();
@@ -820,16 +814,33 @@
             if (!dataPenyewa || dataPenyewa.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-400 text-sm">
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">
                             <i class="fa-solid fa-info-circle mr-1"></i> 
-                            Belum ada data penyewa. Klik tombol <b>"Sync"</b> untuk memuat data.
+                            Belum ada data penyewa di sheet <b>"Penyewa"</b>.
+                            <br>Klik tombol <b>"Sync"</b> untuk memuat ulang data.
                         </td>
                     </tr>
                 `;
                 return;
             }
             
-            dataPenyewa.forEach((p, index) => {
+            // Filter hanya penyewa dengan status aktif
+            const aktif = dataPenyewa.filter(p => p.status === 'aktif');
+            
+            if (aktif.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">
+                            <i class="fa-solid fa-info-circle mr-1"></i> 
+                            Tidak ada penyewa dengan status <b>"aktif"</b>.
+                            <br>Ubah status penyewa di sheet <b>"Penyewa"</b> menjadi "aktif".
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            aktif.forEach((p, index) => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-100 hover:bg-gray-50';
                 tr.innerHTML = `
@@ -837,6 +848,10 @@
                     <td class="px-3 py-2 font-medium text-gray-800">
                         ${p.nama}
                         <input type="hidden" class="bulk-nama" value="${p.nama}">
+                        <input type="hidden" class="bulk-id" value="${p.id}">
+                    </td>
+                    <td class="px-3 py-2">
+                        <span class="badge-status badge-aktif">${p.status || 'aktif'}</span>
                     </td>
                     <td class="px-3 py-2">
                         <input type="number" class="bulk-jumlah w-full px-2 py-1 border border-gray-300 rounded text-sm" 
@@ -862,7 +877,8 @@
             showLoading(true);
             await loadDaftarPenyewa();
             showLoading(false);
-            showToast('Sync', `Data penyewa berhasil dimuat (${dataPenyewa.length} orang)`);
+            const aktif = dataPenyewa.filter(p => p.status === 'aktif');
+            showToast('Sync', `Data penyewa berhasil dimuat (${aktif.length} aktif dari ${dataPenyewa.length} total)`);
         }
 
         function resetBulkForm() {
@@ -887,8 +903,9 @@
                 }
             });
             
+            const totalPenyewa = jumlahs.length;
             document.getElementById('bulk-summary').innerHTML = 
-                `<span class="text-emerald-700 font-bold">${filled}</span> dari <span class="font-bold">${jumlahs.length}</span> penyewa terisi, total: <span class="font-bold text-emerald-700">${formatRupiah(total)}</span>`;
+                `<span class="text-emerald-700 font-bold">${filled}</span> dari <span class="font-bold">${totalPenyewa}</span> penyewa terisi, total: <span class="font-bold text-emerald-700">${formatRupiah(total)}</span>`;
             
             if (filled === 0) {
                 showToast('Info', 'Belum ada data yang diisi', 'info');
@@ -1119,7 +1136,12 @@
         }
 
         function fillDemoPenyewa() {
-            if (dataPenyewa.length > 0) {
+            // Cari penyewa dengan status aktif
+            const aktif = dataPenyewa.find(p => p.status === 'aktif');
+            if (aktif) {
+                document.getElementById('input-penyewa-nama').value = aktif.nama;
+                document.getElementById('input-penyewa-pass').value = aktif.password || '1234';
+            } else if (dataPenyewa.length > 0) {
                 document.getElementById('input-penyewa-nama').value = dataPenyewa[0].nama;
                 document.getElementById('input-penyewa-pass').value = dataPenyewa[0].password || '1234';
             } else {
