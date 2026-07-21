@@ -5,31 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KantinKu - SMP Negeri 4 Majenang</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
         * { font-family: 'Inter', sans-serif; }
-        
         .bg-gradient-custom {
             background: linear-gradient(135deg, #065f46, #0d9488);
         }
-        
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        .toast {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
         }
-        
-        .transition-all {
-            transition: all 0.3s ease;
+        .toast.show {
+            transform: translateX(0);
         }
-        
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .nav-btn.active {
+            background: #065f46;
+            color: white;
+        }
+        .nav-btn.active i {
+            color: white;
+        }
+        .hidden {
+            display: none !important;
+        }
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -39,94 +46,14 @@
             border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
         }
-        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
-        .toast {
-            transform: translateX(100%);
-            transition: transform 0.3s ease-out;
-        }
-        
-        .toast.show {
-            transform: translateX(0);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .nav-btn.active {
-            background: #065f46;
-            color: white;
-        }
-        
-        .nav-btn.active i {
-            color: white;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        .badge-status {
-            padding: 2px 12px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        
-        .badge-sewa {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .badge-iuran {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .badge-denda {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .badge-lunas {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .badge-pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .badge-batal {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .badge-aktif {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .badge-nonaktif {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .badge-pending-status {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        /* Status koneksi */
+        .badge-sewa { background: #d1fae5; color: #065f46; }
+        .badge-iuran { background: #dbeafe; color: #1e40af; }
+        .badge-denda { background: #fee2e2; color: #991b1b; }
+        .badge-lunas { background: #d1fae5; color: #065f46; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
         .status-dot {
             display: inline-block;
             width: 10px;
@@ -134,41 +61,20 @@
             border-radius: 50%;
             margin-right: 8px;
         }
-        
-        .status-dot.online {
-            background: #22c55e;
-        }
-        
+        .status-dot.online { background: #22c55e; }
         .status-dot.offline {
             background: #ef4444;
             animation: pulse 1.5s ease-in-out infinite;
         }
-        
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
         }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .modal-backdrop {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
         }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        
-        /* Print style untuk struk */
+        /* Print style */
         @media print {
             body * { visibility: hidden; }
             #printable-receipt, #printable-receipt * { visibility: visible; }
@@ -182,17 +88,35 @@
             }
             .no-print { display: none !important; }
         }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Modal backdrop */
-        .modal-backdrop {
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
+        /* Bulk input table styling */
+        .bulk-table th {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            z-index: 10;
+        }
+        .bulk-table input, .bulk-table select {
+            font-size: 13px;
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            width: 100%;
+        }
+        .bulk-table input:focus, .bulk-table select:focus {
+            outline: none;
+            border-color: #065f46;
+            ring: 2px solid #065f46;
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <!-- ============ TOAST NOTIFICATION ============ -->
+    <!-- ============ TOAST ============ -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 toast bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl max-w-md flex items-center gap-3 border border-gray-700">
         <div id="toast-icon" class="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-600 flex-shrink-0">
             <i class="fa-solid fa-check text-white text-sm"></i>
@@ -208,7 +132,7 @@
 
     <!-- ============ HEADER ============ -->
     <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('beranda')">
                 <div class="w-10 h-10 bg-gradient-custom rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
                     <i class="fa-solid fa-store"></i>
@@ -220,13 +144,11 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <!-- Status Koneksi -->
                 <div id="connection-status" class="hidden md:flex items-center text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
                     <span id="status-dot" class="status-dot online"></span>
                     <span id="status-text">Online</span>
                 </div>
 
-                <!-- User Badge -->
                 <div id="user-badge" class="hidden items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-xl text-sm font-bold text-emerald-800 border border-emerald-200">
                     <i class="fa-solid fa-circle-user text-emerald-600"></i>
                     <span id="user-badge-name">User</span>
@@ -235,15 +157,13 @@
                     </button>
                 </div>
                 
-                <!-- Mobile Menu Toggle -->
                 <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg hover:bg-gray-100">
                     <i class="fa-solid fa-bars text-xl text-gray-600"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Navigation -->
-        <nav class="max-w-6xl mx-auto px-4 pb-2">
+        <nav class="max-w-7xl mx-auto px-4 pb-2">
             <div class="flex gap-1 overflow-x-auto">
                 <button onclick="switchTab('beranda')" id="nav-beranda" class="nav-btn active px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 bg-emerald-700 text-white whitespace-nowrap">
                     <i class="fa-solid fa-house"></i> Beranda
@@ -258,8 +178,8 @@
         </nav>
     </header>
 
-    <!-- ============ MAIN CONTENT ============ -->
-    <main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- ============ MAIN ============ -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
 
         <!-- ===== TAB BERANDA ===== -->
         <div id="tab-beranda" class="tab-content active">
@@ -276,7 +196,6 @@
                 </div>
             </div>
 
-            <!-- Statistik -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                     <p class="text-xs font-bold text-gray-400 uppercase">Total Penyewa</p>
@@ -296,7 +215,6 @@
                 </div>
             </div>
 
-            <!-- Status Backend -->
             <div class="mt-8 bg-gray-900 rounded-2xl p-4 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -325,13 +243,17 @@
                         <i class="fa-solid fa-user-lock"></i>
                     </div>
                     <h3 class="text-2xl font-black text-gray-900 mt-3">Login Penyewa</h3>
-                    <p class="text-sm text-gray-500">Masukkan nama lengkap Anda</p>
+                    <p class="text-sm text-gray-500">Masukkan Nama dan Password Anda</p>
                 </div>
 
                 <form onsubmit="handleLoginPenyewa(event)">
                     <div class="mb-4">
                         <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Nama Lengkap *</label>
                         <input type="text" id="input-penyewa-nama" required placeholder="Contoh: Ibu Siti Aminah" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Password *</label>
+                        <input type="password" id="input-penyewa-pass" required placeholder="Masukkan password" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                     </div>
                     <button type="submit" id="btn-login-penyewa" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-right-to-bracket"></i> Masuk Dashboard
@@ -340,40 +262,30 @@
 
                 <div class="mt-4 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 border border-gray-200">
                     <p class="font-bold text-gray-800"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Demo Akun:</p>
-                    <p class="font-mono">Nama: <span class="font-bold text-emerald-700">Ibu Siti Aminah</span></p>
+                    <p class="font-mono">Nama: <span class="font-bold text-emerald-700">Ibu Siti Aminah</span> | Pass: <span class="font-bold text-emerald-700">1234</span></p>
                     <button onclick="fillDemoPenyewa()" class="text-emerald-700 font-bold hover:underline mt-1 text-xs">Gunakan Akun Demo</button>
                 </div>
             </div>
 
-            <!-- Dashboard Penyewa -->
+            <!-- Dashboard Penyewa (Hanya Lihat Rekap) -->
             <div id="penyewa-dashboard" class="hidden">
                 <div class="bg-gradient-custom rounded-3xl p-6 text-white mb-6">
                     <p class="text-emerald-100 text-sm">Dashboard Penyewa</p>
                     <h2 class="text-2xl font-black">Selamat Datang, <span id="penyewa-nama" class="text-amber-300">-</span>!</h2>
+                    <p class="text-emerald-100 text-sm mt-1"><i class="fa-solid fa-info-circle mr-1"></i> Anda hanya dapat melihat rekap pembayaran</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                         <p class="text-xs font-bold text-gray-400 uppercase">Total Sewa</p>
-                        <p id="penyewa-total-sewa" class="text-xl font-black text-emerald-700">Rp 0</p>
+                        <p id="penyewa-total-sewa" class="text-2xl font-black text-emerald-700">Rp 0</p>
                     </div>
                     <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                         <p class="text-xs font-bold text-gray-400 uppercase">Total Iuran</p>
-                        <p id="penyewa-total-iuran" class="text-xl font-black text-blue-700">Rp 0</p>
+                        <p id="penyewa-total-iuran" class="text-2xl font-black text-blue-700">Rp 0</p>
                     </div>
                 </div>
 
-                <!-- Tombol Aksi Penyewa -->
-                <div class="flex flex-wrap gap-3 mb-6">
-                    <button onclick="openModalBayar()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-credit-card"></i> Bayar Sewa / Iuran
-                    </button>
-                    <button onclick="openModalPengaduan()" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Pengaduan
-                    </button>
-                </div>
-
-                <!-- Riwayat Transaksi -->
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                         <h3 class="font-bold text-gray-900">Riwayat Transaksi</h3>
@@ -385,10 +297,10 @@
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase">
                                 <tr>
+                                    <th class="px-4 py-3 text-left">Tanggal</th>
                                     <th class="px-4 py-3 text-left">Jenis</th>
                                     <th class="px-4 py-3 text-left">Jumlah</th>
-                                    <th class="px-4 py-3 text-left">Tanggal</th>
-                                    <th class="px-4 py-3 text-left">Catatan</th>
+                                    <th class="px-4 py-3 text-left">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="penyewa-transaksi-body" class="divide-y divide-gray-100">
@@ -447,16 +359,6 @@
                     <p class="text-gray-400 text-sm mt-1">Logged as: <span id="admin-nama" class="text-amber-300 font-bold">Admin</span></p>
                 </div>
 
-                <!-- Tombol Aksi Admin -->
-                <div class="flex flex-wrap gap-3 mb-6">
-                    <button onclick="openModalCatatAdmin()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-plus-circle"></i> Catat Transaksi Cash
-                    </button>
-                    <button onclick="refreshAdmin()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-rotate"></i> Refresh Data
-                    </button>
-                </div>
-
                 <!-- Statistik -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
@@ -473,10 +375,82 @@
                     </div>
                 </div>
 
+                <!-- BULK INPUT SETORAN -->
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-emerald-50">
+                        <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square text-emerald-700"></i> 
+                            Input Setoran Sekaligus untuk Semua Penyewa
+                        </h3>
+                        <p class="text-xs text-gray-500 mt-1">Isi data setoran untuk semua penyewa dalam satu tabel</p>
+                    </div>
+                    
+                    <div class="p-4 overflow-x-auto">
+                        <form onsubmit="handleBulkInput(event)">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal *</label>
+                                    <input type="date" id="bulk-tanggal" required class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Jenis *</label>
+                                    <select id="bulk-jenis" required class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+                                        <option value="Sewa">Sewa</option>
+                                        <option value="Iuran">Iuran</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Metode *</label>
+                                    <select id="bulk-metode" required class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+                                        <option value="Cash">Cash / Tunai</option>
+                                        <option value="Transfer Bank">Transfer Bank</option>
+                                        <option value="QRIS">QRIS / E-Wallet</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="button" onclick="resetBulkForm()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg text-sm transition">
+                                        <i class="fa-solid fa-rotate mr-1"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto max-h-[400px] overflow-y-auto border border-gray-200 rounded-xl">
+                                <table class="w-full text-sm bulk-table">
+                                    <thead>
+                                        <tr class="bg-gray-50 border-b border-gray-200">
+                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase w-[30px]">#</th>
+                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase">Nama Penyewa</th>
+                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase w-[120px]">Jumlah (Rp)</th>
+                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase w-[100px]">Status</th>
+                                            <th class="px-3 py-2 text-left text-xs font-bold text-gray-500 uppercase">Catatan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bulk-table-body">
+                                        <!-- Diisi oleh JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-4 flex flex-wrap gap-3">
+                                <button type="submit" id="btn-bulk-submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition flex items-center gap-2">
+                                    <i class="fa-solid fa-save"></i> Simpan Semua Setoran
+                                </button>
+                                <button type="button" onclick="checkAllInputs()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition text-sm">
+                                    <i class="fa-solid fa-check-double"></i> Cek Kelengkapan
+                                </button>
+                                <span id="bulk-summary" class="text-sm text-gray-500 flex items-center"></span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- Rekap per Penyewa -->
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                         <h3 class="font-bold text-gray-900">Rekap Setoran per Penyewa</h3>
+                        <button onclick="refreshAdmin()" class="text-sm text-blue-700 font-bold hover:underline">
+                            <i class="fa-solid fa-rotate mr-1"></i> Refresh
+                        </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
@@ -507,205 +481,33 @@
 
     <!-- ============ FOOTER ============ -->
     <footer class="bg-white border-t border-gray-200 py-6 mt-12">
-        <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
             <p>&copy; 2026 SMP Negeri 4 Majenang. All rights reserved.</p>
             <p class="font-semibold text-emerald-800 text-xs mt-1">Sistem KantinKu - Berbasis Google Apps Script</p>
         </div>
     </footer>
 
-    <!-- ============================================ -->
-    <!-- MODALS -->
-    <!-- ============================================ -->
-
-    <!-- MODAL 1: Bayar Sewa/Iuran -->
-    <div id="modal-bayar" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModalBayar()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-xmark text-2xl"></i>
-            </button>
-
-            <div class="mb-6">
-                <h3 class="text-2xl font-black text-gray-900">💰 Bayar Sewa / Iuran</h3>
-                <p class="text-sm text-gray-500">Laporkan pembayaran Anda di sini</p>
-            </div>
-
-            <form onsubmit="handleBayar(event)">
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Jenis Pembayaran *</label>
-                    <select id="form-bayar-jenis" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <option value="Sewa">Sewa Lapak (Bulanan)</option>
-                        <option value="Iuran">Iuran Kebersihan (Harian)</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Jumlah (Rp) *</label>
-                    <input type="number" id="form-bayar-jumlah" required placeholder="350000" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Metode Pembayaran *</label>
-                    <select id="form-bayar-metode" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <option value="Transfer Bank">Transfer Bank</option>
-                        <option value="QRIS">QRIS / E-Wallet</option>
-                        <option value="Cash">Cash / Tunai</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Catatan</label>
-                    <input type="text" id="form-bayar-catatan" placeholder="Contoh: Iuran 5 hari" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-
-                <button type="submit" id="btn-submit-bayar" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Kirim Laporan
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 2: Pengaduan -->
-    <div id="modal-pengaduan" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModalPengaduan()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-xmark text-2xl"></i>
-            </button>
-
-            <div class="mb-6">
-                <h3 class="text-2xl font-black text-gray-900">⚠️ Form Pengaduan</h3>
-                <p class="text-sm text-gray-500">Laporkan masalah fasilitas atau kebersihan</p>
-            </div>
-
-            <form onsubmit="handlePengaduan(event)">
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Kategori *</label>
-                    <select id="form-pengaduan-kategori" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <option value="Fasilitas Kios">Fasilitas Kios</option>
-                        <option value="Kebersihan">Kebersihan</option>
-                        <option value="Keamanan">Keamanan</option>
-                        <option value="Lainnya">Lainnya</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Judul Laporan *</label>
-                    <input type="text" id="form-pengaduan-judul" required placeholder="Contoh: Lampu mati" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Deskripsi *</label>
-                    <textarea id="form-pengaduan-deskripsi" rows="3" required placeholder="Jelaskan masalah secara detail..." class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none"></textarea>
-                </div>
-
-                <button type="submit" id="btn-submit-pengaduan" class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Kirim Pengaduan
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 3: Catat Transaksi Admin -->
-    <div id="modal-catat-admin" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModalCatatAdmin()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-xmark text-2xl"></i>
-            </button>
-
-            <div class="mb-6">
-                <h3 class="text-2xl font-black text-gray-900">📝 Catat Transaksi Cash</h3>
-                <p class="text-sm text-gray-500">Input langsung setoran tunai dari penyewa</p>
-            </div>
-
-            <form onsubmit="handleCatatAdmin(event)">
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Pilih Penyewa *</label>
-                    <select id="form-admin-penyewa" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <!-- Diisi oleh JavaScript -->
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Jenis *</label>
-                    <select id="form-admin-jenis" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <option value="Sewa">Sewa Lapak</option>
-                        <option value="Iuran">Iuran Kebersihan</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Jumlah (Rp) *</label>
-                    <input type="number" id="form-admin-jumlah" required placeholder="350000" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Catatan</label>
-                    <input type="text" id="form-admin-catatan" placeholder="Lunas tunai" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                </div>
-
-                <button type="submit" id="btn-submit-catat-admin" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-save"></i> Simpan Transaksi
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 4: Struk Cetak -->
-    <div id="modal-struk" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
-            <button onclick="closeModalStruk()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 no-print">
-                <i class="fa-solid fa-xmark text-2xl"></i>
-            </button>
-
-            <div id="printable-receipt" class="p-4 bg-amber-50/50 border border-amber-200 rounded-2xl text-gray-800 space-y-3 font-mono text-xs">
-                <div class="text-center border-b border-dashed border-gray-300 pb-3">
-                    <h4 class="font-bold text-sm text-gray-900">SMP NEGERI 4 MAJENANG</h4>
-                    <p class="text-[10px] text-gray-500">KantinKu - Struk Setoran</p>
-                </div>
-
-                <div class="space-y-1">
-                    <p class="flex justify-between"><span>No. Transaksi:</span> <span id="struk-id" class="font-bold">-</span></p>
-                    <p class="flex justify-between"><span>Tanggal:</span> <span id="struk-tanggal">-</span></p>
-                    <p class="flex justify-between"><span>Penyewa:</span> <span id="struk-penyewa" class="font-bold">-</span></p>
-                    <p class="flex justify-between"><span>Jenis:</span> <span id="struk-jenis">-</span></p>
-                    <p class="flex justify-between"><span>Metode:</span> <span id="struk-metode">-</span></p>
-                </div>
-
-                <div class="border-t border-b border-dashed border-gray-300 py-2 my-2 text-right">
-                    <p class="text-[10px] text-gray-500 uppercase">Total Bayar</p>
-                    <h3 id="struk-jumlah" class="text-base font-black text-emerald-800">Rp 0</h3>
-                </div>
-
-                <div class="text-center text-[10px] text-gray-500 pt-1">
-                    <p>Status: <span id="struk-status" class="font-bold text-emerald-700">LUNAS</span></p>
-                    <p class="mt-1">Terima Kasih atas Pembayaran Anda.</p>
-                </div>
-            </div>
-
-            <button onclick="window.print()" class="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs transition flex items-center justify-center gap-2 no-print mt-4">
-                <i class="fa-solid fa-print"></i> Cetak Struk
-            </button>
-        </div>
-    </div>
-
     <!-- ============ JAVASCRIPT ============ -->
     <script>
         // ============================================
-        // KONFIGURASI - GANTI DENGAN URL DEPLOY ANDA
+        // KONFIGURASI
         // ============================================
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzOKqHkNAyEZ3h27RKmasbTZNJmlVT2UiW4qDusgTor9pm8TVu7YN386crGHDeFo8o7yA/exec";
+
+        // Data penyewa (hardcode atau ambil dari backend)
+        const DATA_PENYEWA = [
+            { id: 'P001', nama: 'Ibu Siti Aminah', password: '1234' },
+            { id: 'P002', nama: 'Bapak Ahmad Subagyo', password: '1234' },
+            { id: 'P003', nama: 'Ibu Dewi Kartika', password: '1234' },
+            { id: 'P004', nama: 'Bapak Hendra Gunawan', password: '1234' }
+        ];
 
         // ============================================
         // STATE
         // ============================================
         let session = {
-            role: null, // 'admin' atau 'penyewa'
+            role: null,
             nama: null
-        };
-
-        let dataCache = {
-            semuaRekap: null,
-            rekapPenyewa: null,
-            penyewaList: []
         };
 
         let isConnected = false;
@@ -716,6 +518,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadSession();
             checkConnection();
+            renderBulkTable();
             
             if (session.role) {
                 updateUIAfterLogin();
@@ -726,50 +529,6 @@
                 }
             }
         });
-
-        // ============================================
-        // CEK KONEKSI BACKEND
-        // ============================================
-        async function checkConnection() {
-            const statusDot = document.getElementById('backend-status-dot');
-            const statusText = document.getElementById('backend-status-text');
-            const connStatus = document.getElementById('connection-status');
-            
-            statusDot.className = 'inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2';
-            statusText.textContent = 'Mengecek koneksi...';
-            
-            try {
-                const result = await callBackend('getRekapSemua');
-                
-                if (result && typeof result === 'object') {
-                    isConnected = true;
-                    statusDot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2';
-                    statusText.textContent = 'Online ✓';
-                    
-                    if (connStatus) {
-                        document.getElementById('status-dot').className = 'status-dot online';
-                        document.getElementById('status-text').textContent = 'Online';
-                        connStatus.classList.remove('hidden');
-                    }
-                    
-                    loadStats();
-                    showToast('Koneksi', 'Terhubung ke server Google Sheets!');
-                } else {
-                    throw new Error('Response tidak valid');
-                }
-            } catch (error) {
-                isConnected = false;
-                statusDot.className = 'inline-block w-2 h-2 rounded-full bg-red-400 mr-2';
-                statusText.textContent = 'Offline - ' + error.message;
-                
-                if (connStatus) {
-                    document.getElementById('status-dot').className = 'status-dot offline';
-                    document.getElementById('status-text').textContent = 'Offline';
-                }
-                
-                console.error('Connection error:', error);
-            }
-        }
 
         // ============================================
         // BACKEND CALL
@@ -786,90 +545,85 @@
                     body: formData.toString()
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const text = await response.text();
                 try {
                     return JSON.parse(text);
-                } catch (parseError) {
-                    throw new Error('Respons tidak valid dari server');
+                } catch (e) {
+                    throw new Error('Respons tidak valid');
                 }
             } catch (error) {
                 console.error('Backend error:', error);
-                let errorMsg = 'Gagal terhubung ke server!';
-                if (error.message.includes('Failed to fetch')) {
-                    errorMsg = 'Tidak dapat terhubung ke server. Periksa URL deploy dan akses "Anyone".';
-                } else if (error.message.includes('HTTP')) {
-                    errorMsg = `Server error: ${error.message}`;
-                }
-                showToast('Error', errorMsg, 'error');
                 return { success: false, message: error.message };
             }
         }
 
         // ============================================
-        // LOGIN FUNCTIONS
+        // CEK KONEKSI
+        // ============================================
+        async function checkConnection() {
+            const statusDot = document.getElementById('backend-status-dot');
+            const statusText = document.getElementById('backend-status-text');
+            
+            statusDot.className = 'inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2';
+            statusText.textContent = 'Mengecek...';
+            
+            try {
+                const result = await callBackend('getRekapSemua');
+                if (result && typeof result === 'object') {
+                    isConnected = true;
+                    statusDot.className = 'inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2';
+                    statusText.textContent = 'Online ✓';
+                    document.getElementById('status-dot').className = 'status-dot online';
+                    document.getElementById('status-text').textContent = 'Online';
+                    loadStats();
+                } else {
+                    throw new Error('Response tidak valid');
+                }
+            } catch (error) {
+                isConnected = false;
+                statusDot.className = 'inline-block w-2 h-2 rounded-full bg-red-400 mr-2';
+                statusText.textContent = 'Offline';
+                document.getElementById('status-dot').className = 'status-dot offline';
+                document.getElementById('status-text').textContent = 'Offline';
+            }
+        }
+
+        // ============================================
+        // LOGIN PENYEWA (dengan password)
         // ============================================
         async function handleLoginPenyewa(e) {
             e.preventDefault();
             
-            if (!isConnected) {
-                showToast('Error', 'Tidak ada koneksi ke server!', 'error');
-                return;
-            }
-            
             const nama = document.getElementById('input-penyewa-nama').value.trim();
-            
-            if (!nama) {
-                showToast('Error', 'Silakan masukkan nama lengkap!', 'error');
-                return;
+            const password = document.getElementById('input-penyewa-pass').value.trim();
+
+            // Cari di data penyewa
+            const found = DATA_PENYEWA.find(p => 
+                p.nama.toLowerCase() === nama.toLowerCase() && 
+                p.password === password
+            );
+
+            if (found) {
+                session = { role: 'penyewa', nama: found.nama };
+                saveSession();
+                updateUIAfterLogin();
+                await loadPenyewaData(found.nama);
+                showToast('Login Berhasil', `Selamat datang, ${found.nama}!`);
+            } else {
+                showToast('Login Gagal', 'Nama atau password salah!', 'error');
             }
-
-            const btn = document.getElementById('btn-login-penyewa');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
-
-            try {
-                const result = await callBackend('loginPenyewa', { namaPenyewa: nama });
-                
-                if (result.success) {
-                    session = { role: 'penyewa', nama: result.nama };
-                    saveSession();
-                    updateUIAfterLogin();
-                    await loadPenyewaData(result.nama);
-                    showToast('Login Berhasil', `Selamat datang, ${result.nama}!`);
-                } else {
-                    showToast('Login Gagal', result.message || 'Nama tidak ditemukan atau tidak aktif', 'error');
-                }
-            } catch (error) {
-                showToast('Error', 'Gagal terhubung ke server!', 'error');
-            }
-
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk Dashboard';
         }
 
+        // ============================================
+        // LOGIN ADMIN
+        // ============================================
         async function handleLoginAdmin(e) {
             e.preventDefault();
             
-            if (!isConnected) {
-                showToast('Error', 'Tidak ada koneksi ke server!', 'error');
-                return;
-            }
-            
             const username = document.getElementById('input-admin-user').value.trim();
             const password = document.getElementById('input-admin-pass').value.trim();
-
-            if (!username || !password) {
-                showToast('Error', 'Harap isi username dan password!', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('btn-login-admin');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
 
             try {
                 const result = await callBackend('loginAdmin', { username, password });
@@ -886,87 +640,38 @@
             } catch (error) {
                 showToast('Error', 'Gagal terhubung ke server!', 'error');
             }
-
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-lock"></i> Masuk Panel Admin';
         }
 
         // ============================================
         // DATA LOADING
         // ============================================
         async function loadAdminData() {
-            if (!isConnected) {
-                showToast('Info', 'Tidak ada koneksi ke server.', 'info');
-                return;
-            }
-            
             try {
                 const result = await callBackend('getRekapSemua');
-                
                 if (result && typeof result === 'object') {
-                    dataCache.semuaRekap = result;
                     renderAdminRekap(result);
-                    // Load penyewa list untuk dropdown
-                    await loadPenyewaList();
-                } else {
-                    showToast('Info', 'Belum ada data transaksi', 'info');
                 }
             } catch (error) {
                 console.error('Load admin data error:', error);
-                showToast('Error', 'Gagal memuat data admin!', 'error');
-            }
-        }
-
-        async function loadPenyewaList() {
-            try {
-                // Ambil dari sheet Penyewa via backend
-                // Karena backend tidak punya endpoint khusus, kita ambil dari rekap
-                const result = await callBackend('getRekapSemua');
-                if (result && typeof result === 'object') {
-                    dataCache.penyewaList = Object.keys(result);
-                    populateAdminSelect();
-                }
-            } catch (error) {
-                console.error('Load penyewa list error:', error);
             }
         }
 
         async function loadPenyewaData(nama) {
-            if (!isConnected) {
-                showToast('Info', 'Tidak ada koneksi ke server.', 'info');
-                return;
-            }
-            
             try {
                 const result = await callBackend('getRekapPenyewa', { namaPenyewa: nama });
-                
                 if (result && result.transaksi) {
-                    dataCache.rekapPenyewa = result;
                     renderPenyewaDashboard(result, nama);
-                } else {
-                    showToast('Info', 'Belum ada transaksi untuk penyewa ini', 'info');
                 }
             } catch (error) {
                 console.error('Load penyewa data error:', error);
-                showToast('Error', 'Gagal memuat data penyewa!', 'error');
             }
         }
 
         async function loadStats() {
-            if (!isConnected) {
-                document.getElementById('stat-total-penyewa').textContent = '?';
-                document.getElementById('stat-total-sewa').textContent = '?';
-                document.getElementById('stat-total-iuran').textContent = '?';
-                document.getElementById('stat-total-kas').textContent = '?';
-                return;
-            }
-            
             try {
                 const result = await callBackend('getRekapSemua');
-                
                 if (result && typeof result === 'object') {
-                    let totalSewa = 0;
-                    let totalIuran = 0;
+                    let totalSewa = 0, totalIuran = 0;
                     let totalPenyewa = Object.keys(result).length;
                     
                     for (let nama in result) {
@@ -981,21 +686,175 @@
                 }
             } catch (error) {
                 console.error('Load stats error:', error);
-                document.getElementById('stat-total-penyewa').textContent = 'Error';
             }
         }
 
         // ============================================
-        // RENDER FUNCTIONS
+        // BULK INPUT - Tampilkan semua penyewa
+        // ============================================
+        function renderBulkTable() {
+            const tbody = document.getElementById('bulk-table-body');
+            tbody.innerHTML = '';
+            
+            DATA_PENYEWA.forEach((p, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="px-3 py-2 text-center text-gray-500 text-xs">${index + 1}</td>
+                    <td class="px-3 py-2 font-medium text-gray-800">
+                        ${p.nama}
+                        <input type="hidden" class="bulk-nama" value="${p.nama}">
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="number" class="bulk-jumlah w-full px-2 py-1 border border-gray-300 rounded text-sm" 
+                               placeholder="0" min="0" step="1000">
+                    </td>
+                    <td class="px-3 py-2">
+                        <select class="bulk-status w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                            <option value="Lunas">Lunas</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Batal">Batal</option>
+                        </select>
+                    </td>
+                    <td class="px-3 py-2">
+                        <input type="text" class="bulk-catatan w-full px-2 py-1 border border-gray-300 rounded text-sm" 
+                               placeholder="Catatan...">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetBulkForm() {
+            document.querySelectorAll('.bulk-jumlah').forEach(el => el.value = '');
+            document.querySelectorAll('.bulk-status').forEach(el => el.value = 'Lunas');
+            document.querySelectorAll('.bulk-catatan').forEach(el => el.value = '');
+            document.getElementById('bulk-tanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('bulk-summary').textContent = '';
+            showToast('Reset', 'Form telah direset');
+        }
+
+        function checkAllInputs() {
+            const jumlahs = document.querySelectorAll('.bulk-jumlah');
+            let filled = 0;
+            let total = 0;
+            
+            jumlahs.forEach((el, i) => {
+                const val = Number(el.value);
+                if (val > 0) {
+                    filled++;
+                    total += val;
+                }
+            });
+            
+            document.getElementById('bulk-summary').innerHTML = 
+                `<span class="text-emerald-700 font-bold">${filled}</span> dari <span class="font-bold">${jumlahs.length}</span> penyewa terisi, total: <span class="font-bold text-emerald-700">${formatRupiah(total)}</span>`;
+            
+            if (filled === 0) {
+                showToast('Info', 'Belum ada data yang diisi', 'info');
+            } else {
+                showToast('Info', `${filled} penyewa terisi, total ${formatRupiah(total)}`, 'info');
+            }
+        }
+
+        // ============================================
+        // HANDLE BULK INPUT
+        // ============================================
+        async function handleBulkInput(e) {
+            e.preventDefault();
+            
+            if (!session.role || session.role !== 'admin') {
+                showToast('Error', 'Silakan login sebagai admin!', 'error');
+                return;
+            }
+
+            const tanggal = document.getElementById('bulk-tanggal').value;
+            const jenis = document.getElementById('bulk-jenis').value;
+            const metode = document.getElementById('bulk-metode').value;
+
+            if (!tanggal) {
+                showToast('Error', 'Pilih tanggal terlebih dahulu!', 'error');
+                return;
+            }
+
+            // Kumpulkan data yang diisi
+            const rows = document.querySelectorAll('#bulk-table-body tr');
+            let dataToSend = [];
+            let totalData = 0;
+
+            rows.forEach(row => {
+                const nama = row.querySelector('.bulk-nama').value;
+                const jumlah = Number(row.querySelector('.bulk-jumlah').value);
+                const status = row.querySelector('.bulk-status').value;
+                const catatan = row.querySelector('.bulk-catatan').value || '-';
+
+                if (jumlah > 0) {
+                    dataToSend.push({ nama, jumlah, status, catatan });
+                    totalData += jumlah;
+                }
+            });
+
+            if (dataToSend.length === 0) {
+                showToast('Error', 'Tidak ada data setoran yang diisi!', 'error');
+                return;
+            }
+
+            // Konfirmasi
+            if (!confirm(`Anda akan menyimpan ${dataToSend.length} transaksi dengan total ${formatRupiah(totalData)}. Lanjutkan?`)) {
+                return;
+            }
+
+            const btn = document.getElementById('btn-bulk-submit');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Menyimpan...';
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (let data of dataToSend) {
+                try {
+                    const result = await callBackend('tambahTransaksi', {
+                        namaPenyewa: data.nama,
+                        jenis: jenis,
+                        jumlah: data.jumlah,
+                        tanggal: tanggal,
+                        metode: metode,
+                        catatan: data.catatan
+                    });
+
+                    if (result.success) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch (error) {
+                    failCount++;
+                }
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Semua Setoran';
+
+            if (successCount > 0) {
+                showToast('Berhasil', `${successCount} transaksi berhasil disimpan!${failCount > 0 ? ` (${failCount} gagal)` : ''}`);
+                resetBulkForm();
+                await loadAdminData();
+                await loadStats();
+            } else {
+                showToast('Error', 'Gagal menyimpan semua transaksi!', 'error');
+            }
+        }
+
+        // ============================================
+        // RENDER FUNGSI
         // ============================================
         function renderAdminRekap(rekap) {
             const tbody = document.getElementById('admin-rekap-body');
             tbody.innerHTML = '';
 
-            let totalSewa = 0;
-            let totalIuran = 0;
-
+            let totalSewa = 0, totalIuran = 0;
             const names = Object.keys(rekap);
+
             if (names.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 text-sm">Belum ada data</td></tr>`;
                 return;
@@ -1018,18 +877,16 @@
                 tbody.appendChild(tr);
             });
 
-            // Total row
             const trTotal = document.createElement('tr');
             trTotal.className = 'bg-gray-50 font-bold border-t-2 border-gray-300';
             trTotal.innerHTML = `
-                <td class="px-4 py-3 text-gray-900">TOTAL KESELURUHAN</td>
+                <td class="px-4 py-3 text-gray-900">TOTAL</td>
                 <td class="px-4 py-3 text-emerald-700">${formatRupiah(totalSewa)}</td>
                 <td class="px-4 py-3 text-blue-700">${formatRupiah(totalIuran)}</td>
                 <td class="px-4 py-3 text-gray-900">${formatRupiah(totalSewa + totalIuran)}</td>
             `;
             tbody.appendChild(trTotal);
 
-            // Update admin stats
             document.getElementById('admin-total-sewa').textContent = formatRupiah(totalSewa);
             document.getElementById('admin-total-iuran').textContent = formatRupiah(totalIuran);
             document.getElementById('admin-total-kas').textContent = formatRupiah(totalSewa + totalIuran);
@@ -1055,36 +912,16 @@
                 if (tx.jenis === 'Iuran') badgeClass = 'badge-iuran';
                 if (tx.jenis === 'Denda') badgeClass = 'badge-denda';
                 
+                let statusBadge = 'badge-lunas';
+                if (tx.status === 'Pending') statusBadge = 'badge-pending';
+                
                 tr.innerHTML = `
-                    <td class="px-4 py-3">
-                        <span class="badge-status ${badgeClass}">${tx.jenis || '-'}</span>
-                    </td>
-                    <td class="px-4 py-3 font-bold text-gray-900">${formatRupiah(tx.jumlah || 0)}</td>
                     <td class="px-4 py-3 text-gray-600 text-sm">${tx.tanggal || '-'}</td>
-                    <td class="px-4 py-3 text-gray-500 text-sm">${tx.catatan || '-'}</td>
+                    <td class="px-4 py-3"><span class="badge-status ${badgeClass}">${tx.jenis || '-'}</span></td>
+                    <td class="px-4 py-3 font-bold text-gray-900">${formatRupiah(tx.jumlah || 0)}</td>
+                    <td class="px-4 py-3"><span class="badge-status ${statusBadge}">${tx.status || 'Lunas'}</span></td>
                 `;
                 tbody.appendChild(tr);
-            });
-        }
-
-        function populateAdminSelect() {
-            const select = document.getElementById('form-admin-penyewa');
-            select.innerHTML = '';
-            
-            const names = dataCache.penyewaList;
-            if (names.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'Tidak ada penyewa';
-                select.appendChild(opt);
-                return;
-            }
-            
-            names.forEach(nama => {
-                const opt = document.createElement('option');
-                opt.value = nama;
-                opt.textContent = nama;
-                select.appendChild(opt);
             });
         }
 
@@ -1093,9 +930,7 @@
         // ============================================
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            
-            const tab = document.getElementById(`tab-${tabId}`);
-            if (tab) tab.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active');
@@ -1108,16 +943,9 @@
                 navBtn.classList.remove('text-gray-600', 'hover:bg-gray-100');
             }
 
-            // Refresh data when switching tabs
-            if (tabId === 'admin' && session.role === 'admin') {
-                loadAdminData();
-            }
-            if (tabId === 'penyewa' && session.role === 'penyewa') {
-                loadPenyewaData(session.nama);
-            }
-            if (tabId === 'beranda') {
-                loadStats();
-            }
+            if (tabId === 'admin' && session.role === 'admin') loadAdminData();
+            if (tabId === 'penyewa' && session.role === 'penyewa') loadPenyewaData(session.nama);
+            if (tabId === 'beranda') loadStats();
         }
 
         function toggleMobileMenu() {
@@ -1126,6 +954,7 @@
 
         function fillDemoPenyewa() {
             document.getElementById('input-penyewa-nama').value = 'Ibu Siti Aminah';
+            document.getElementById('input-penyewa-pass').value = '1234';
         }
 
         function fillDemoAdmin() {
@@ -1149,6 +978,7 @@
                     document.getElementById('admin-login').classList.add('hidden');
                     document.getElementById('admin-dashboard').classList.remove('hidden');
                     document.getElementById('admin-nama').textContent = session.nama;
+                    renderBulkTable();
                 }
             }
         }
@@ -1166,6 +996,7 @@
             document.getElementById('admin-dashboard').classList.add('hidden');
             
             document.getElementById('input-penyewa-nama').value = '';
+            document.getElementById('input-penyewa-pass').value = '';
             document.getElementById('input-admin-user').value = '';
             document.getElementById('input-admin-pass').value = '';
             
@@ -1189,9 +1020,6 @@
             }
         }
 
-        // ============================================
-        // REFRESH FUNCTIONS
-        // ============================================
         function refreshPenyewa() {
             if (session.role === 'penyewa' && session.nama) {
                 loadPenyewaData(session.nama);
@@ -1202,191 +1030,9 @@
         function refreshAdmin() {
             if (session.role === 'admin') {
                 loadAdminData();
+                renderBulkTable();
                 showToast('Refresh', 'Data rekap diperbarui!');
             }
-        }
-
-        // ============================================
-        // MODAL FUNCTIONS
-        // ============================================
-        function openModalBayar() {
-            document.getElementById('modal-bayar').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModalBayar() {
-            document.getElementById('modal-bayar').classList.add('hidden');
-            document.body.style.overflow = '';
-            document.getElementById('form-bayar').reset();
-        }
-
-        function openModalPengaduan() {
-            document.getElementById('modal-pengaduan').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModalPengaduan() {
-            document.getElementById('modal-pengaduan').classList.add('hidden');
-            document.body.style.overflow = '';
-            document.getElementById('form-pengaduan').reset();
-        }
-
-        function openModalCatatAdmin() {
-            populateAdminSelect();
-            document.getElementById('modal-catat-admin').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModalCatatAdmin() {
-            document.getElementById('modal-catat-admin').classList.add('hidden');
-            document.body.style.overflow = '';
-            document.getElementById('form-catat-admin').reset();
-        }
-
-        function openModalStruk(trxId, data) {
-            document.getElementById('struk-id').textContent = trxId || '-';
-            document.getElementById('struk-tanggal').textContent = data.tanggal || new Date().toISOString().split('T')[0];
-            document.getElementById('struk-penyewa').textContent = data.namaPenyewa || '-';
-            document.getElementById('struk-jenis').textContent = data.jenis || '-';
-            document.getElementById('struk-metode').textContent = data.metode || '-';
-            document.getElementById('struk-jumlah').textContent = formatRupiah(data.jumlah || 0);
-            
-            document.getElementById('modal-struk').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModalStruk() {
-            document.getElementById('modal-struk').classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        // ============================================
-        // FORM HANDLERS
-        // ============================================
-        async function handleBayar(e) {
-            e.preventDefault();
-            
-            if (!session.role || session.role !== 'penyewa') {
-                showToast('Error', 'Silakan login sebagai penyewa!', 'error');
-                return;
-            }
-
-            const jenis = document.getElementById('form-bayar-jenis').value;
-            const jumlah = document.getElementById('form-bayar-jumlah').value;
-            const metode = document.getElementById('form-bayar-metode').value;
-            const catatan = document.getElementById('form-bayar-catatan').value;
-
-            if (!jumlah || Number(jumlah) <= 0) {
-                showToast('Error', 'Masukkan jumlah yang valid!', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('btn-submit-bayar');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
-
-            try {
-                const result = await callBackend('tambahTransaksi', {
-                    namaPenyewa: session.nama,
-                    jenis: jenis,
-                    jumlah: Number(jumlah),
-                    tanggal: new Date().toISOString().split('T')[0],
-                    metode: metode,
-                    catatan: catatan || '-'
-                });
-
-                if (result.success) {
-                    closeModalBayar();
-                    showToast('Berhasil', 'Pembayaran berhasil dicatat!');
-                    await loadPenyewaData(session.nama);
-                    await loadStats();
-                } else {
-                    showToast('Error', result.message || 'Gagal mencatat pembayaran!', 'error');
-                }
-            } catch (error) {
-                showToast('Error', 'Gagal terhubung ke server!', 'error');
-            }
-
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim Laporan';
-        }
-
-        async function handlePengaduan(e) {
-            e.preventDefault();
-            
-            if (!session.role || session.role !== 'penyewa') {
-                showToast('Error', 'Silakan login sebagai penyewa!', 'error');
-                return;
-            }
-
-            const kategori = document.getElementById('form-pengaduan-kategori').value;
-            const judul = document.getElementById('form-pengaduan-judul').value;
-            const deskripsi = document.getElementById('form-pengaduan-deskripsi').value;
-
-            const btn = document.getElementById('btn-submit-pengaduan');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
-
-            // Simulasi kirim pengaduan (backend belum ada endpoint untuk ini)
-            setTimeout(() => {
-                closeModalPengaduan();
-                showToast('Berhasil', 'Pengaduan Anda telah dikirim ke pengelola!');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim Pengaduan';
-            }, 1500);
-        }
-
-        async function handleCatatAdmin(e) {
-            e.preventDefault();
-            
-            if (!session.role || session.role !== 'admin') {
-                showToast('Error', 'Silakan login sebagai admin!', 'error');
-                return;
-            }
-
-            const namaPenyewa = document.getElementById('form-admin-penyewa').value;
-            const jenis = document.getElementById('form-admin-jenis').value;
-            const jumlah = document.getElementById('form-admin-jumlah').value;
-            const catatan = document.getElementById('form-admin-catatan').value;
-
-            if (!namaPenyewa) {
-                showToast('Error', 'Pilih penyewa terlebih dahulu!', 'error');
-                return;
-            }
-
-            if (!jumlah || Number(jumlah) <= 0) {
-                showToast('Error', 'Masukkan jumlah yang valid!', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('btn-submit-catat-admin');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
-
-            try {
-                const result = await callBackend('tambahTransaksi', {
-                    namaPenyewa: namaPenyewa,
-                    jenis: jenis,
-                    jumlah: Number(jumlah),
-                    tanggal: new Date().toISOString().split('T')[0],
-                    metode: 'Cash',
-                    catatan: catatan || 'Dicatat oleh Admin'
-                });
-
-                if (result.success) {
-                    closeModalCatatAdmin();
-                    showToast('Berhasil', 'Transaksi berhasil dicatat!');
-                    await loadAdminData();
-                    await loadStats();
-                } else {
-                    showToast('Error', result.message || 'Gagal mencatat transaksi!', 'error');
-                }
-            } catch (error) {
-                showToast('Error', 'Gagal terhubung ke server!', 'error');
-            }
-
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Transaksi';
         }
 
         // ============================================
@@ -1434,14 +1080,11 @@
             }).format(val);
         }
 
-        // Tutup modal dengan klik di luar
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal-backdrop')) {
-                closeModalBayar();
-                closeModalPengaduan();
-                closeModalCatatAdmin();
-                closeModalStruk();
-            }
+        // Set default date
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('bulk-tanggal');
+            if (dateInput) dateInput.value = today;
         });
     </script>
 </body>
