@@ -233,15 +233,15 @@
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                     <p class="text-xs font-bold text-gray-400 uppercase">Total Sewa</p>
-                    <p id="stat-total-sewa" class="text-2xl font-black text-emerald-700">-</p>
+                    <p id="stat-total-sewa" class="text-base md:text-2xl font-black text-emerald-700">🔒 Khusus Admin</p>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                     <p class="text-xs font-bold text-gray-400 uppercase">Total Iuran</p>
-                    <p id="stat-total-iuran" class="text-2xl font-black text-blue-700">-</p>
+                    <p id="stat-total-iuran" class="text-base md:text-2xl font-black text-blue-700">🔒 Khusus Admin</p>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                     <p class="text-xs font-bold text-gray-400 uppercase">Total Kas</p>
-                    <p id="stat-total-kas" class="text-2xl font-black text-gray-900">-</p>
+                    <p id="stat-total-kas" class="text-base md:text-2xl font-black text-gray-900">🔒 Khusus Admin</p>
                 </div>
             </div>
 
@@ -795,9 +795,17 @@
                     }
                     
                     document.getElementById('stat-total-penyewa').textContent = totalPenyewa;
-                    document.getElementById('stat-total-sewa').textContent = formatRupiah(totalSewa);
-                    document.getElementById('stat-total-iuran').textContent = formatRupiah(totalIuran);
-                    document.getElementById('stat-total-kas').textContent = formatRupiah(totalSewa + totalIuran);
+                    
+                    // Hanya tampilkan rincian keuangan jika pengguna terverifikasi sebagai admin
+                    if (session.role === 'admin') {
+                        document.getElementById('stat-total-sewa').textContent = formatRupiah(totalSewa);
+                        document.getElementById('stat-total-iuran').textContent = formatRupiah(totalIuran);
+                        document.getElementById('stat-total-kas').textContent = formatRupiah(totalSewa + totalIuran);
+                    } else {
+                        document.getElementById('stat-total-sewa').textContent = '🔒 Khusus Admin';
+                        document.getElementById('stat-total-iuran').textContent = '🔒 Khusus Admin';
+                        document.getElementById('stat-total-kas').textContent = '🔒 Khusus Admin';
+                    }
                 }
             } catch (error) {
                 console.error('Load stats error:', error);
@@ -1173,6 +1181,7 @@
                     document.getElementById('admin-nama').textContent = session.nama;
                 }
             }
+            loadStats();
         }
 
         function logout() {
@@ -1193,6 +1202,7 @@
             document.getElementById('input-admin-pass').value = '';
             
             switchTab('beranda');
+            loadStats();
             showToast('Logout', 'Anda telah keluar dari sistem.');
         }
 
